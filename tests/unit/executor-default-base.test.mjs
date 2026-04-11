@@ -162,6 +162,22 @@ test("DefaultExecutor.buildUrl falls back to OpenAI config for unknown providers
   assert.equal(executor.buildUrl("gpt-4.1", true), PROVIDERS.openai.baseUrl);
 });
 
+test("DefaultExecutor routes mapped OpenAI models to /responses", () => {
+  const executor = new DefaultExecutor("openai");
+
+  assert.equal(executor.buildUrl("gpt-5-mini-2025-08-07", true), PROVIDERS.openai.responsesBaseUrl);
+  assert.equal(
+    executor.buildUrl("gpt-4.1-mini-2025-04-14", true),
+    PROVIDERS.openai.responsesBaseUrl
+  );
+  assert.equal(
+    executor.buildUrl("gpt-4o-mini-2024-07-18", true),
+    PROVIDERS.openai.responsesBaseUrl
+  );
+  assert.equal(executor.buildUrl("o1-mini-2024-09-12", true), PROVIDERS.openai.responsesBaseUrl);
+  assert.equal(executor.buildUrl("o4-mini-2025-04-16", true), PROVIDERS.openai.responsesBaseUrl);
+});
+
 test("DefaultExecutor.buildHeaders handles Gemini and Claude auth modes", () => {
   const gemini = new DefaultExecutor("gemini");
   const claude = new DefaultExecutor("claude");

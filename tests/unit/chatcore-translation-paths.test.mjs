@@ -74,7 +74,7 @@ function buildOpenAIResponse(stream, text = "ok") {
     JSON.stringify({
       id: "chatcmpl-json",
       object: "chat.completion",
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       choices: [
         {
           index: 0,
@@ -269,7 +269,7 @@ async function getLatestCallLog() {
 async function invokeChatCore({
   body,
   provider = "openai",
-  model = "gpt-4o-mini",
+  model = "gpt-4o",
   endpoint = "/v1/chat/completions",
   accept = "application/json",
   userAgent = "unit-test",
@@ -594,7 +594,7 @@ test("chatCore disables raw Claude passthrough when cache preservation is off an
 test("chatCore default translation converts Claude requests to OpenAI and strips cache markers for non-Claude providers", async () => {
   const { call } = await invokeChatCore({
     provider: "openai",
-    model: "gpt-4o-mini",
+    model: "gpt-4o",
     endpoint: "/v1/messages",
     body: {
       model: "claude-sonnet-4-6",
@@ -611,7 +611,7 @@ test("chatCore default translation converts Claude requests to OpenAI and strips
     responseFormat: "openai",
   });
 
-  assert.equal(call.body.model, "gpt-4o-mini");
+  assert.equal(call.body.model, "gpt-4o");
   assert.equal(Array.isArray(call.body.messages), true);
   assert.equal(call.body.messages[0].role, "system");
   assert.equal(JSON.stringify(call.body).includes("cache_control"), false);
@@ -748,10 +748,10 @@ test("chatCore surfaces translation errors with explicit status codes", async ()
 
   const { result } = await invokeChatCore({
     provider: "openai",
-    model: "gpt-4o-mini",
+    model: "gpt-4o",
     endpoint: "/v1/responses",
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       input: "hello",
     },
   });
@@ -776,10 +776,10 @@ test("chatCore surfaces typed translation errors with the declared error type", 
 
   const { result } = await invokeChatCore({
     provider: "openai",
-    model: "gpt-4o-mini",
+    model: "gpt-4o",
     endpoint: "/v1/responses",
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       input: "hello",
     },
   });
@@ -804,10 +804,10 @@ test("chatCore returns 500 when translation throws a generic error", async () =>
 
   const { result } = await invokeChatCore({
     provider: "openai",
-    model: "gpt-4o-mini",
+    model: "gpt-4o",
     endpoint: "/v1/responses",
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       input: "hello",
     },
   });
@@ -821,14 +821,14 @@ test("chatCore refreshes GitHub credentials after 401 and retries with the refre
   let refreshedCredentials = null;
   const { calls, result } = await invokeChatCore({
     provider: "github",
-    model: "gpt-4o-mini",
+    model: "gpt-4o",
     credentials: {
       accessToken: "gh-access-token",
       refreshToken: "gh-refresh-token",
       providerSpecificData: {},
     },
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       stream: false,
       messages: [{ role: "user", content: "retry after auth refresh" }],
     },
@@ -869,7 +869,9 @@ test("chatCore refreshes GitHub credentials after 401 and retries with the refre
   });
 
   const payload = await result.response.json();
-  const providerCalls = calls.filter((entry) => entry.url.startsWith("https://api.githubcopilot.com/"));
+  const providerCalls = calls.filter((entry) =>
+    entry.url.startsWith("https://api.githubcopilot.com/")
+  );
 
   assert.equal(result.success, true);
   assert.equal(providerCalls.length, 2);
@@ -884,9 +886,9 @@ test("chatCore refreshes GitHub credentials after 401 and retries with the refre
 test("chatCore uses the native executor when no upstream proxy mode is enabled", async () => {
   const { call } = await invokeChatCore({
     provider: "openai",
-    model: "gpt-4o-mini",
+    model: "gpt-4o",
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [{ role: "user", content: "hello" }],
     },
     responseFormat: "openai",
@@ -1024,10 +1026,10 @@ test("chatCore serves a cached idempotent response without hitting the provider 
 
   const first = await invokeChatCore({
     provider: "openai",
-    model: "gpt-4o-mini",
+    model: "gpt-4o",
     requestHeaders: sharedHeaders,
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       stream: false,
       messages: [{ role: "user", content: "repeat this safely" }],
     },
@@ -1036,10 +1038,10 @@ test("chatCore serves a cached idempotent response without hitting the provider 
 
   const second = await invokeChatCore({
     provider: "openai",
-    model: "gpt-4o-mini",
+    model: "gpt-4o",
     requestHeaders: sharedHeaders,
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       stream: false,
       messages: [{ role: "user", content: "repeat this safely" }],
     },
@@ -1058,7 +1060,7 @@ test("chatCore serves a cached idempotent response without hitting the provider 
 test("chatCore returns a semantic cache HIT for repeated deterministic requests", async () => {
   let upstreamHits = 0;
   const sharedBody = {
-    model: "gpt-4o-mini",
+    model: "gpt-4o",
     stream: false,
     temperature: 0,
     messages: [{ role: "user", content: "cache this exact answer" }],
@@ -1066,7 +1068,7 @@ test("chatCore returns a semantic cache HIT for repeated deterministic requests"
 
   const first = await invokeChatCore({
     provider: "openai",
-    model: "gpt-4o-mini",
+    model: "gpt-4o",
     body: sharedBody,
     responseFormat: "openai",
     responseFactory() {
@@ -1077,7 +1079,7 @@ test("chatCore returns a semantic cache HIT for repeated deterministic requests"
 
   const second = await invokeChatCore({
     provider: "openai",
-    model: "gpt-4o-mini",
+    model: "gpt-4o",
     body: sharedBody,
     responseFormat: "openai",
     responseFactory() {
@@ -1099,9 +1101,9 @@ test("chatCore returns a semantic cache HIT for repeated deterministic requests"
 test("chatCore normalizes tool finish reasons and estimates usage when upstream omits it", async () => {
   const { result } = await invokeChatCore({
     provider: "openai",
-    model: "gpt-4o-mini",
+    model: "gpt-4o",
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       stream: false,
       messages: [{ role: "user", content: "call the tool" }],
     },
@@ -1111,7 +1113,7 @@ test("chatCore normalizes tool finish reasons and estimates usage when upstream 
         JSON.stringify({
           id: "chatcmpl_tool_no_usage",
           object: "chat.completion",
-          model: "gpt-4o-mini",
+          model: "gpt-4o",
           choices: [
             {
               index: 0,
@@ -1342,9 +1344,9 @@ test("chatCore falls back to a larger-context sibling when the request overflows
 test("chatCore parses upstream SSE payloads for non-streaming requests", async () => {
   const { result } = await invokeChatCore({
     provider: "openai",
-    model: "gpt-4o-mini",
+    model: "gpt-4o",
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       stream: false,
       messages: [{ role: "user", content: "parse sse" }],
     },
@@ -1361,9 +1363,9 @@ test("chatCore parses upstream SSE payloads for non-streaming requests", async (
 test("chatCore rejects malformed non-streaming SSE payloads", async () => {
   const { result } = await invokeChatCore({
     provider: "openai",
-    model: "gpt-4o-mini",
+    model: "gpt-4o",
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       stream: false,
       messages: [{ role: "user", content: "bad sse" }],
     },
@@ -1383,9 +1385,9 @@ test("chatCore rejects malformed non-streaming SSE payloads", async () => {
 test("chatCore rejects malformed non-streaming JSON payloads", async () => {
   const { result } = await invokeChatCore({
     provider: "openai",
-    model: "gpt-4o-mini",
+    model: "gpt-4o",
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       stream: false,
       messages: [{ role: "user", content: "return valid json" }],
     },
@@ -1568,9 +1570,9 @@ test("chatCore records Claude prompt cache and cache usage metadata in call logs
 test("chatCore serves emergency fallback responses for budget errors on non-streaming requests", async () => {
   const { calls, result } = await invokeChatCore({
     provider: "openai",
-    model: "gpt-4o-mini",
+    model: "gpt-4o",
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       stream: false,
       max_tokens: 9000,
       messages: [{ role: "user", content: "keep the request alive after budget exhaustion" }],
@@ -1604,11 +1606,11 @@ test("chatCore serves emergency fallback responses for budget errors on non-stre
 test("chatCore injects progress events into streaming responses when requested", async () => {
   const { result } = await invokeChatCore({
     provider: "openai",
-    model: "gpt-4o-mini",
+    model: "gpt-4o",
     accept: "text/event-stream",
     requestHeaders: { "x-omniroute-progress": "true" },
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       stream: true,
       messages: [{ role: "user", content: "stream with progress" }],
     },
@@ -1626,9 +1628,9 @@ test("chatCore injects progress events into streaming responses when requested",
 test("chatCore maps upstream aborts to request-aborted errors", async () => {
   const { result } = await invokeChatCore({
     provider: "openai",
-    model: "gpt-4o-mini",
+    model: "gpt-4o",
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       stream: false,
       messages: [{ role: "user", content: "abort me" }],
     },

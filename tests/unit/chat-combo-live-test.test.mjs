@@ -63,7 +63,7 @@ function makeRequest(extraHeaders = {}) {
       ...extraHeaders,
     },
     body: JSON.stringify({
-      model: "openai/gpt-4o-mini",
+      model: "openai/gpt-4o",
       messages: [{ role: "user", content: "Reply with OK only." }],
       max_tokens: 16,
       stream: false,
@@ -95,7 +95,7 @@ test.after(async () => {
 test("combo live test bypasses local cooldown and breaker state to perform a real upstream request", async () => {
   const created = await seedSuppressedConnection();
 
-  setModelUnavailable("openai", "gpt-4o-mini", 60_000, "test cooldown");
+  setModelUnavailable("openai", "gpt-4o", 60_000, "test cooldown");
   const breaker = getCircuitBreaker("openai");
   breaker.state = STATE.OPEN;
   breaker.lastFailureTime = Date.now();
@@ -120,7 +120,7 @@ test("combo live test bypasses local cooldown and breaker state to perform a rea
   assert.equal(blockedByCooldown.status, 503);
   assert.equal(fetchCalls.length, 0);
 
-  clearModelUnavailability("openai", "gpt-4o-mini");
+  clearModelUnavailability("openai", "gpt-4o");
 
   const blockedByBreaker = await chatRoute.POST(makeRequest());
   assert.equal(blockedByBreaker.status, 503);
@@ -145,13 +145,13 @@ test("combo live test bypasses semantic cache and forces a fresh upstream reques
   await seedHealthyConnection();
 
   const signature = generateSignature(
-    "gpt-4o-mini",
+    "gpt-4o",
     [{ role: "user", content: "Reply with OK only." }],
     0,
     1
   );
 
-  setCachedResponse(signature, "gpt-4o-mini", {
+  setCachedResponse(signature, "gpt-4o", {
     id: "chatcmpl-cached",
     choices: [
       {

@@ -8,6 +8,7 @@ import {
   joinClaudeCodeCompatibleUrl,
 } from "../services/claudeCodeCompatible.ts";
 import { getOpenAICompatibleType, isClaudeCodeCompatible } from "../services/provider.ts";
+import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
 
 export class DefaultExecutor extends BaseExecutor {
   constructor(provider) {
@@ -43,7 +44,14 @@ export class DefaultExecutor extends BaseExecutor {
       const normalized = baseUrl.replace(/\/$/, "");
       return `${normalized}${customPath || "/messages"}`;
     }
+    const providerAlias = PROVIDER_ID_TO_ALIAS[this.provider] || this.provider;
+    const modelTargetFormat = getModelTargetFormat(providerAlias, model);
     switch (this.provider) {
+      case "openai":
+        if (modelTargetFormat === "openai-responses" && this.config.responsesBaseUrl) {
+          return this.config.responsesBaseUrl;
+        }
+        return this.config.baseUrl;
       case "claude":
       case "glm":
       case "kimi-coding":

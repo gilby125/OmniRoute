@@ -38,6 +38,14 @@ test("provider models helpers validate and resolve model metadata", () => {
   assert.equal(findModelName("missing-provider", "missing-model"), "missing-model");
 
   assert.equal(getModelTargetFormat("openai", firstModel.id), firstModel.targetFormat || null);
+  assert.equal(getModelTargetFormat("openai", "gpt-5.1-codex-mini"), "openai-responses");
+  assert.equal(getModelTargetFormat("openai", "gpt-5-mini-2025-08-07"), "openai-responses");
+  assert.equal(getModelTargetFormat("openai", "gpt-4.1-mini-2025-04-14"), "openai-responses");
+  assert.equal(getModelTargetFormat("openai", "gpt-4o-mini-2024-07-18"), "openai-responses");
+  assert.equal(getModelTargetFormat("openai", "o1-mini-2024-09-12"), "openai-responses");
+  assert.equal(getModelTargetFormat("openai", "o4-mini-2025-04-16"), "openai-responses");
+  assert.equal(getModelTargetFormat("codex", "gpt-5.4-mini-2026-03-17"), "openai-responses");
+  assert.equal(isValidModel("openai", "gpt-5.4-mini-2026-03-17"), true);
   assert.equal(getModelTargetFormat("openai", "missing-model"), null);
   assert.equal(getModelTargetFormat("missing-provider", "missing-model"), null);
 });

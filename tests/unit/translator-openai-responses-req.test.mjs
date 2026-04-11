@@ -228,8 +228,25 @@ test("Chat -> Responses converts messages, tool calls, tool outputs, tools and p
   ]);
   assert.deepEqual(result.tool_choice, { type: "function", name: "read_file" });
   assert.equal(result.temperature, 0.2);
-  assert.equal(result.max_tokens, 100);
+  assert.equal(result.max_output_tokens, 100);
+  assert.equal("max_tokens" in result, false);
   assert.equal(result.top_p, 0.9);
+});
+
+test("Chat -> Responses prefers max_completion_tokens when present", () => {
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-5.1-codex-mini",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+      max_completion_tokens: 321,
+      max_tokens: 123,
+    },
+    false,
+    null
+  );
+
+  assert.equal(result.max_output_tokens, 321);
+  assert.equal("max_tokens" in result, false);
 });
 
 test("Chat -> Responses filters orphan function_call_output items and leaves empty instructions when absent", () => {

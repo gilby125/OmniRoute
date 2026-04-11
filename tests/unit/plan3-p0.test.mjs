@@ -28,9 +28,9 @@ test("getModelInfoCore keeps openai fallback for gpt-4o", async () => {
   assert.equal(info.model, "gpt-4o");
 });
 
-test("getModelInfoCore resolves gpt-5.4 to codex", async () => {
+test("getModelInfoCore keeps openai fallback for gpt-5.4", async () => {
   const info = await getModelInfoCore("gpt-5.4", {});
-  assert.equal(info.provider, "codex");
+  assert.equal(info.provider, "openai");
   assert.equal(info.model, "gpt-5.4");
 });
 

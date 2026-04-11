@@ -71,7 +71,7 @@ async function resetStorage() {
 async function invokeResponsesCore({
   body,
   provider = "openai",
-  model = "gpt-4o-mini",
+  model = "gpt-4o",
   credentials,
   responseFactory,
 } = {}) {
@@ -123,7 +123,7 @@ test.after(async () => {
 test("handleResponsesCore converts Responses API input, instructions, tools, metadata, and forces streaming", async () => {
   const { call, result } = await invokeResponsesCore({
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       instructions: "You are terse",
       input: [
         {
@@ -159,7 +159,7 @@ test("handleResponsesCore converts Responses API input, instructions, tools, met
 test("handleResponsesCore preserves previous_response_id and handles empty input arrays", async () => {
   const { call, result } = await invokeResponsesCore({
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       input: [],
       previous_response_id: "resp_prev_123",
       metadata: { session: "abc" },
@@ -176,7 +176,7 @@ test("handleResponsesCore preserves previous_response_id and handles empty input
 test("handleResponsesCore transforms upstream OpenAI SSE into Responses API SSE", async () => {
   const { result } = await invokeResponsesCore({
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       input: "hello",
     },
   });
@@ -194,7 +194,7 @@ test("handleResponsesCore transforms upstream OpenAI SSE into Responses API SSE"
 test("handleResponsesCore propagates upstream failures from chatCore unchanged", async () => {
   const { result } = await invokeResponsesCore({
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       input: "hello",
     },
     responseFactory() {
@@ -216,11 +216,11 @@ test("handleResponsesCore rejects invalid Responses API input that cannot be tra
     () =>
       handleResponsesCore({
         body: {
-          model: "gpt-4o-mini",
+          model: "gpt-4o",
           input: "hello",
           tools: [{ type: "web_search_preview" }],
         },
-        modelInfo: { provider: "openai", model: "gpt-4o-mini", extendedContext: false },
+        modelInfo: { provider: "openai", model: "gpt-4o", extendedContext: false },
         credentials: { apiKey: "sk-test", providerSpecificData: {} },
         log: noopLog(),
         onCredentialsRefreshed: null,
