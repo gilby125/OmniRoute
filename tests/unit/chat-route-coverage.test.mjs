@@ -97,7 +97,7 @@ test("handleChat rejects suspicious prompt-injection payloads before routing", a
   const response = await handleChat(
     buildRequest({
       body: {
-        model: "openai/gpt-4o-mini",
+        model: "openai/gpt-4o",
         messages: [
           {
             role: "user",
@@ -127,7 +127,7 @@ test("handleChat redacts PII before sending the upstream request", async () => {
   const response = await handleChat(
     buildRequest({
       body: {
-        model: "openai/gpt-4o-mini",
+        model: "openai/gpt-4o",
         stream: false,
         messages: [{ role: "user", content: "Email me at dev@example.com" }],
       },
@@ -150,7 +150,7 @@ test("handleChat treats Accept text/event-stream as stream=true and returns a se
     buildRequest({
       headers: { Accept: "application/json, text/event-stream" },
       body: {
-        model: "openai/gpt-4o-mini",
+        model: "openai/gpt-4o",
         messages: [{ role: "user", content: "stream please" }],
       },
     })
@@ -170,7 +170,7 @@ test("handleChat enforces strict API key mode for missing and invalid keys", asy
   const missing = await handleChat(
     buildRequest({
       body: {
-        model: "openai/gpt-4o-mini",
+        model: "openai/gpt-4o",
         stream: false,
         messages: [{ role: "user", content: "missing auth" }],
       },
@@ -180,7 +180,7 @@ test("handleChat enforces strict API key mode for missing and invalid keys", asy
     buildRequest({
       authKey: "sk-does-not-exist",
       body: {
-        model: "openai/gpt-4o-mini",
+        model: "openai/gpt-4o",
         stream: false,
         messages: [{ role: "user", content: "invalid auth" }],
       },
@@ -227,7 +227,7 @@ test("handleChat applies task-aware routing when a semantic override is enabled"
   const response = await handleChat(
     buildRequest({
       body: {
-        model: "openai/gpt-4o-mini",
+        model: "openai/gpt-4o",
         stream: false,
         messages: [{ role: "user", content: "Write code to sort this array" }],
       },
@@ -247,7 +247,7 @@ test("handleChat routes exact combo names and can recover via global fallback", 
     name: "router-global-fallback",
     strategy: "priority",
     config: { maxRetries: 0, retryDelayMs: 0 },
-    models: ["openai/gpt-4o-mini"],
+    models: ["openai/gpt-4o"],
   });
   await settingsDb.updateSettings({
     globalFallbackModel: "claude/claude-3-5-sonnet-20241022",
@@ -294,7 +294,7 @@ test("handleChat keeps the combo error when the global fallback throws", async (
     name: "router-global-fallback-throw",
     strategy: "priority",
     config: { maxRetries: 0, retryDelayMs: 0 },
-    models: ["openai/gpt-4o-mini"],
+    models: ["openai/gpt-4o"],
   });
   await settingsDb.updateSettings({
     globalFallbackModel: "claude/claude-3-5-sonnet-20241022",
@@ -332,7 +332,7 @@ test("handleChat returns 400 when no provider credentials exist", async () => {
   const response = await handleChat(
     buildRequest({
       body: {
-        model: "openai/gpt-4o-mini",
+        model: "openai/gpt-4o",
         stream: false,
         messages: [{ role: "user", content: "Hello" }],
       },
@@ -346,12 +346,12 @@ test("handleChat returns 400 when no provider credentials exist", async () => {
 
 test("handleChat returns 503 for cooled-down models and open circuit breakers", async () => {
   await seedConnection("openai", { apiKey: "sk-openai-breaker" });
-  setModelUnavailable("openai", "gpt-4o-mini", 60_000, "test cooldown");
+  setModelUnavailable("openai", "gpt-4o", 60_000, "test cooldown");
 
   const cooldownResponse = await handleChat(
     buildRequest({
       body: {
-        model: "openai/gpt-4o-mini",
+        model: "openai/gpt-4o",
         stream: false,
         messages: [{ role: "user", content: "cooldown" }],
       },
@@ -361,7 +361,7 @@ test("handleChat returns 503 for cooled-down models and open circuit breakers", 
   assert.equal(cooldownResponse.status, 503);
   assert.match(cooldownJson.error.message, /temporarily unavailable/i);
 
-  clearModelUnavailability("openai", "gpt-4o-mini");
+  clearModelUnavailability("openai", "gpt-4o");
   const freshBreaker = getCircuitBreaker("openai");
   freshBreaker.reset();
 
@@ -372,7 +372,7 @@ test("handleChat returns 503 for cooled-down models and open circuit breakers", 
   const breakerBlocked = await handleChat(
     buildRequest({
       body: {
-        model: "openai/gpt-4o-mini",
+        model: "openai/gpt-4o",
         stream: false,
         messages: [{ role: "user", content: "breaker open" }],
       },
@@ -396,7 +396,7 @@ test("handleChat maps upstream timeouts to HTTP 504", async () => {
   const response = await handleChat(
     buildRequest({
       body: {
-        model: "openai/gpt-4o-mini",
+        model: "openai/gpt-4o",
         stream: false,
         messages: [{ role: "user", content: "timeout" }],
       },
@@ -430,7 +430,7 @@ test("handleChat uses the emergency fallback model on budget exhaustion", async 
   const response = await handleChat(
     buildRequest({
       body: {
-        model: "openai/gpt-4o-mini",
+        model: "openai/gpt-4o",
         stream: false,
         max_tokens: 9000,
         messages: [{ role: "user", content: "budget exhausted" }],
@@ -472,7 +472,7 @@ test("handleChat returns the primary budget error when emergency fallback also f
   const response = await handleChat(
     buildRequest({
       body: {
-        model: "openai/gpt-4o-mini",
+        model: "openai/gpt-4o",
         stream: false,
         messages: [{ role: "user", content: "budget exhausted again" }],
       },
@@ -481,7 +481,7 @@ test("handleChat returns the primary budget error when emergency fallback also f
   const json = await response.json();
 
   assert.equal(response.status, 402);
-  assert.deepEqual(seenModels, ["gpt-4o-mini", "openai/gpt-oss-120b", "openai/gpt-oss-120b"]);
+  assert.deepEqual(seenModels, ["gpt-4o", "openai/gpt-oss-120b", "openai/gpt-oss-120b"]);
   assert.match(json.error.message, /quota exceeded/i);
 });
 
@@ -495,7 +495,7 @@ test("handleChat rejects models that are not allowed by the caller API key polic
     buildRequest({
       authKey: apiKey.key,
       body: {
-        model: "openai/gpt-4o-mini",
+        model: "openai/gpt-4o",
         stream: false,
         messages: [{ role: "user", content: "policy reject" }],
       },

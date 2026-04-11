@@ -9,6 +9,7 @@ import {
 } from "../services/claudeCodeCompatible.ts";
 import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
 import { getOpenAICompatibleType, isClaudeCodeCompatible } from "../services/provider.ts";
+import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
 
 function normalizeBaseUrl(baseUrl) {
   return (baseUrl || "").trim().replace(/\/$/, "");
@@ -78,7 +79,14 @@ export class DefaultExecutor extends BaseExecutor {
       const normalized = baseUrl.replace(/\/$/, "");
       return `${normalized}${customPath || "/messages"}`;
     }
+    const providerAlias = PROVIDER_ID_TO_ALIAS[this.provider] || this.provider;
+    const modelTargetFormat = getModelTargetFormat(providerAlias, model);
     switch (this.provider) {
+      case "openai":
+        if (modelTargetFormat === "openai-responses" && this.config.responsesBaseUrl) {
+          return this.config.responsesBaseUrl;
+        }
+        return this.config.baseUrl;
       case "bailian-coding-plan": {
         const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeBailianMessagesUrl(baseUrl);

@@ -45,7 +45,7 @@ function buildUpstreamResponse(stream) {
     JSON.stringify({
       id: "chatcmpl-json",
       object: "chat.completion",
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       choices: [
         {
           index: 0,
@@ -93,7 +93,7 @@ async function invokeChatCore({
   body,
   accept = "application/json",
   provider = "openai",
-  model = "gpt-4o-mini",
+  model = "gpt-4o",
   endpoint = "/v1/chat/completions",
   credentials = { apiKey: "sk-test", providerSpecificData: {} },
   apiKeyInfo = null,
@@ -152,14 +152,14 @@ test.after(() => {
 test("chatCore sanitization normalizes max_output_tokens into max_tokens", async () => {
   const copied = await invokeChatCore({
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       max_output_tokens: 0,
       messages: [{ role: "user", content: "hello" }],
     },
   });
   const preserved = await invokeChatCore({
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       max_output_tokens: 64,
       max_tokens: 7,
       messages: [{ role: "user", content: "hello" }],
@@ -167,7 +167,7 @@ test("chatCore sanitization normalizes max_output_tokens into max_tokens", async
   });
   const untouched = await invokeChatCore({
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [{ role: "user", content: "hello" }],
     },
   });
@@ -179,12 +179,42 @@ test("chatCore sanitization normalizes max_output_tokens into max_tokens", async
   assert.equal("max_tokens" in untouched.call.body, false);
 });
 
+test("chatCore sanitization remaps max_tokens to max_output_tokens for modern OpenAI responses models", async () => {
+  const { call } = await invokeChatCore({
+    model: "gpt-5-mini-2025-08-07",
+    body: {
+      model: "gpt-5-mini-2025-08-07",
+      max_tokens: 64,
+      messages: [{ role: "user", content: "hello" }],
+    },
+  });
+
+  assert.match(call.url, /\/responses$/);
+  assert.equal(call.body.max_output_tokens, 64);
+  assert.equal("max_tokens" in call.body, false);
+});
+
+test("chatCore routes responses-only OpenAI models through /responses and carries output token caps", async () => {
+  const { call } = await invokeChatCore({
+    model: "gpt-5.1-codex-mini",
+    body: {
+      model: "gpt-5.1-codex-mini",
+      max_tokens: 77,
+      messages: [{ role: "user", content: "hello" }],
+    },
+  });
+
+  assert.match(call.url, /\/responses$/);
+  assert.equal(call.body.max_output_tokens, 77);
+  assert.equal("max_tokens" in call.body, false);
+});
+
 test("chatCore sanitization strips empty message names and filters empty tool names", async () => {
   // Note: `input` field is tested separately because its presence triggers
   // Responses format detection (PR #1002), which changes message handling.
   const { call } = await invokeChatCore({
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [
         { role: "user", content: "hello", name: "" },
         { role: "assistant", content: "world", name: "valid-name" },
@@ -215,7 +245,7 @@ test("chatCore sanitization strips empty input item names on responses endpoint"
   const { call } = await invokeChatCore({
     endpoint: "/v1/responses",
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       input: [
         { role: "user", content: "input-1", name: "" },
         { role: "user", content: "input-2", name: "still-valid" },
@@ -227,7 +257,7 @@ test("chatCore sanitization strips empty input item names on responses endpoint"
           id: "resp_test",
           object: "response",
           status: "completed",
-          model: "gpt-4o-mini",
+          model: "gpt-4o",
           output: [
             { type: "message", role: "assistant", content: [{ type: "output_text", text: "ok" }] },
           ],
@@ -254,7 +284,7 @@ test("chatCore sanitization strips empty input item names on responses endpoint"
 test("chatCore sanitization normalizes mixed content blocks and removes unsupported or empty ones", async () => {
   const { call } = await invokeChatCore({
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [
         {
           role: "user",
@@ -349,19 +379,19 @@ test("chatCore sanitization normalizes mixed content blocks and removes unsuppor
 test("chatCore resolves stream mode from body.stream and Accept header", async () => {
   const explicitTrue = await invokeChatCore({
     accept: "application/json",
-    body: { model: "gpt-4o-mini", stream: true, messages: [{ role: "user", content: "hello" }] },
+    body: { model: "gpt-4o", stream: true, messages: [{ role: "user", content: "hello" }] },
   });
   const explicitFalse = await invokeChatCore({
     accept: "text/event-stream",
-    body: { model: "gpt-4o-mini", stream: false, messages: [{ role: "user", content: "hello" }] },
+    body: { model: "gpt-4o", stream: false, messages: [{ role: "user", content: "hello" }] },
   });
   const acceptDriven = await invokeChatCore({
     accept: "text/event-stream",
-    body: { model: "gpt-4o-mini", messages: [{ role: "user", content: "hello" }] },
+    body: { model: "gpt-4o", messages: [{ role: "user", content: "hello" }] },
   });
   const jsonDefault = await invokeChatCore({
     accept: "application/json",
-    body: { model: "gpt-4o-mini", messages: [{ role: "user", content: "hello" }] },
+    body: { model: "gpt-4o", messages: [{ role: "user", content: "hello" }] },
   });
 
   assert.equal(explicitTrue.call.headers.Accept, "text/event-stream");
@@ -394,7 +424,7 @@ test("chatCore injects memories when enabled and memories are found", async () =
   const { call } = await invokeChatCore({
     apiKeyInfo: { id: apiKeyId, name: "Memory Key" },
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [{ role: "user", content: "Give me a snippet." }],
     },
   });
@@ -419,13 +449,13 @@ test("chatCore skips memory injection when memory is disabled or apiKeyInfo is m
   const disabled = await invokeChatCore({
     apiKeyInfo: { id: `key-disabled-${Date.now()}`, name: "Disabled Key" },
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [{ role: "user", content: "Hello" }],
     },
   });
   const noApiKey = await invokeChatCore({
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [{ role: "user", content: "Hello" }],
     },
   });
@@ -448,7 +478,7 @@ test("chatCore skips memory injection when shouldInjectMemory returns false for 
   const { call } = await invokeChatCore({
     apiKeyInfo: { id: `key-empty-${Date.now()}`, name: "Empty Key" },
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [],
     },
   });
@@ -501,7 +531,7 @@ test("chatCore extracts memories from Claude content arrays and Responses output
     endpoint: "/v1/responses",
     apiKeyInfo: { id: responsesKeyId, name: "Responses Memory Key" },
     body: {
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       input: "Remember this too.",
     },
     responseFactory: () =>
@@ -510,7 +540,7 @@ test("chatCore extracts memories from Claude content arrays and Responses output
           id: "resp_memory",
           object: "response",
           status: "completed",
-          model: "gpt-4o-mini",
+          model: "gpt-4o",
           output_text: "I prefer TypeScript for backend services.",
           usage: {
             input_tokens: 3,
