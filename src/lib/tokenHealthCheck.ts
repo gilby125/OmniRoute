@@ -255,7 +255,7 @@ async function checkConnection(conn) {
   };
 
   const hideLogs = await shouldHideLogs();
-  const proxyConfig = await resolveProxyForConnection(conn.id);
+  const proxyInfo = await resolveProxyForConnection(conn.id);
   const result = await getAccessToken(
     conn.provider,
     credentials,
@@ -270,7 +270,7 @@ async function checkConnection(conn) {
         if (!hideLogs) console.error(`${LOG_PREFIX} [${tag}] ${msg}`, extra || "");
       },
     },
-    proxyConfig
+    proxyInfo?.proxy ?? null
   );
 
   const now = new Date().toISOString();
