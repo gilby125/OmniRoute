@@ -1132,9 +1132,11 @@ test("chatCore skips semantic cache when disabled in settings", async () => {
     model: "gpt-4o-mini",
     body: sharedBody,
     responseFormat: "openai",
-    responseFactory() {
+    responseFactory(call) {
       upstreamHits += 1;
-      return buildOpenAIResponse(false, `fresh-${upstreamHits}`);
+      return /\/responses(?:\?|$)/.test(call.url)
+        ? buildResponsesResponse(`fresh-${upstreamHits}`)
+        : buildOpenAIResponse(false, `fresh-${upstreamHits}`);
     },
   });
 
@@ -1143,9 +1145,11 @@ test("chatCore skips semantic cache when disabled in settings", async () => {
     model: "gpt-4o-mini",
     body: sharedBody,
     responseFormat: "openai",
-    responseFactory() {
+    responseFactory(call) {
       upstreamHits += 1;
-      return buildOpenAIResponse(false, `fresh-${upstreamHits}`);
+      return /\/responses(?:\?|$)/.test(call.url)
+        ? buildResponsesResponse(`fresh-${upstreamHits}`)
+        : buildOpenAIResponse(false, `fresh-${upstreamHits}`);
     },
   });
 
