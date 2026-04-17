@@ -288,6 +288,64 @@ test(
   }
 );
 
+test(
+  "runMigrations aborts if too many pending migrations on an existing database",
+  serial,
+  async () => {
+    const originalEnv = process.env.MAX_PENDING_MIGRATIONS;
+    process.env.MAX_PENDING_MIGRATIONS = "2";
+
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+
+    try {
+      db.exec(`
+      CREATE TABLE _omniroute_migrations (
+        version TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+    `);
+      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+        "001",
+        "initial"
+      );
+
+      // 3 pending migrations, threshold is 2 -> should abort
+      assert.throws(
+        () =>
+          withMockedMigrationFs(
+            {
+              "001_initial.sql": "SELECT 1;",
+              "002_two.sql": "SELECT 1;",
+              "003_three.sql": "SELECT 1;",
+              "004_four.sql": "SELECT 1;",
+            },
+            () => runner.runMigrations(db)
+          ),
+        /ABORT: Detected 3 pending migrations/
+      );
+
+      // Increase threshold to 5 -> should pass
+      process.env.MAX_PENDING_MIGRATIONS = "5";
+      const runner2 = await importFresh("src/lib/db/migrationRunner.ts");
+      const count = withMockedMigrationFs(
+        {
+          "001_initial.sql": "SELECT 1;",
+          "002_two.sql": "SELECT 1;",
+          "003_three.sql": "SELECT 1;",
+          "004_four.sql": "SELECT 1;",
+        },
+        () => runner2.runMigrations(db)
+      );
+      assert.equal(count, 3);
+    } finally {
+      process.env.MAX_PENDING_MIGRATIONS = originalEnv;
+      db.close();
+    }
+  }
+);
+
 test("missing or empty migration directories are treated as a no-op", serial, async () => {
   const runner = await importFresh("src/lib/db/migrationRunner.ts");
   const missingDb = createDb();

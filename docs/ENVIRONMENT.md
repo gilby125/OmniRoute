@@ -69,6 +69,7 @@ OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These vari
 | `STORAGE_ENCRYPTION_KEY`         | _(empty = disabled)_ | `src/lib/db/encryption.ts`                      | AES key for full SQLite database encryption at rest. Generate with `openssl rand -hex 32`.                         |
 | `STORAGE_ENCRYPTION_KEY_VERSION` | `v1`                 | `scripts/bootstrap-env.mjs`, `electron/main.js` | Version label for the encryption key. Increment when performing key rotation to support decryption of old backups. |
 | `DISABLE_SQLITE_AUTO_BACKUP`     | `false`              | `src/lib/db/backup.ts`                          | When `true`, skips the automatic database backup that runs before migrations on every startup.                     |
+| `MAX_PENDING_MIGRATIONS`         | `50`                 | `src/lib/db/migrationRunner.ts`                 | Max pending migrations allowed on existing DB. Prevents data loss if tracking is wiped. Set `0` to disable.        |
 | `OMNIROUTE_CRYPT_KEY`            | _(unset)_            | `src/lib/db/encryption.ts`                      | **Legacy alias** for `STORAGE_ENCRYPTION_KEY`. Accepted as a fallback when the primary variable is absent.         |
 | `OMNIROUTE_API_KEY_BASE64`       | _(unset)_            | `src/lib/db/encryption.ts`                      | **Legacy alias** (Base64-encoded form) accepted as a fallback. Decoded automatically before use.                   |
 
