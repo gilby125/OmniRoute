@@ -42,6 +42,7 @@ services:
   omniroute:
     <<: *common
     container_name: omniroute
+    profiles: ["base", "cli", "full"]
     build:
       context: .
       target: runner-cli
