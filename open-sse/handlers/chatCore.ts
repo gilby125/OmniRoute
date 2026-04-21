@@ -242,6 +242,28 @@ function resolveMemoryOwnerId(apiKeyInfo: Record<string, unknown> | null): strin
   return null;
 }
 
+function normalizeOpenAIModelFamily(modelId: string): string {
+  const bareModel = String(modelId || "")
+    .trim()
+    .split("/")
+    .pop();
+  return String(bareModel || "").replace(/-\d{4}-\d{2}-\d{2}$/, "");
+}
+
+function requiresMaxCompletionTokens(provider: string, modelId: string): boolean {
+  if (provider !== "openai") return false;
+
+  const normalized = normalizeOpenAIModelFamily(modelId);
+  return (
+    /^gpt-5(?:$|[-.])/.test(normalized) ||
+    /^o1(?:$|-)/.test(normalized) ||
+    /^o3(?:$|-)/.test(normalized) ||
+    /^o4(?:$|-)/.test(normalized)
+  );
+}
+
+}
+
 export function shouldUseNativeCodexPassthrough({
   provider,
   sourceFormat,
@@ -1108,12 +1130,24 @@ export async function handleChatCore({
         body.max_output_tokens = body.max_tokens;
         delete body.max_tokens;
       }
+    } else {
+      // If we already have max_output_tokens, ensure max_tokens is NOT present for Responses targets
+      delete body.max_tokens;
     }
   } else if (body.max_output_tokens !== undefined) {
     if (body.max_tokens === undefined) {
       body.max_tokens = body.max_output_tokens;
     }
     delete body.max_output_tokens;
+  }
+
+  if (
+    requiresMaxCompletionTokens(provider, model) &&
+    body.max_completion_tokens === undefined &&
+    body.max_tokens !== undefined
+  ) {
+    body.max_completion_tokens = body.max_tokens;
+    delete body.max_tokens;
   }
 
   // #291: Strip empty name fields from messages/input items

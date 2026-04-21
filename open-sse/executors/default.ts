@@ -11,6 +11,7 @@ import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
 import { applyProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 import { getOpenAICompatibleType, isClaudeCodeCompatible } from "../services/provider.ts";
 import { sanitizeQwenThinkingToolChoice } from "../services/qwenThinking.ts";
+import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
 
 function normalizeBaseUrl(baseUrl) {
   return (baseUrl || "").trim().replace(/\/$/, "");
@@ -109,6 +110,14 @@ export class DefaultExecutor extends BaseExecutor {
       case "gigachat": {
         const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeGigachatChatUrl(baseUrl);
+      }
+      case "openai": {
+        const providerAlias = PROVIDER_ID_TO_ALIAS[this.provider] || this.provider;
+        const modelTargetFormat = getModelTargetFormat(providerAlias, model);
+        if (modelTargetFormat === "openai-responses" && this.config.responsesBaseUrl) {
+          return this.config.responsesBaseUrl;
+        }
+        return this.config.baseUrl;
       }
       case "claude":
       case "glm":
