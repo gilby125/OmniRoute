@@ -13,7 +13,7 @@ COPY scripts/postinstallSupport.mjs ./scripts/postinstallSupport.mjs
 RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
 
 COPY . ./
-RUN mkdir -p /app/data && NODE_OPTIONS="--max-old-space-size=2048" npm run build -- --webpack
+RUN mkdir -p /app/data && NODE_OPTIONS="--max-old-space-size=2048" npm run build
 
 FROM node:24.14.1-trixie-slim AS runner-base
 WORKDIR /app
