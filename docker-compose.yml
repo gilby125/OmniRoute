@@ -46,7 +46,6 @@ services:
     build:
       context: .
       target: runner-cli
-    image: omniroute:cli
     ports:
       - "${DASHBOARD_PORT:-${PORT:-20128}}:${DASHBOARD_PORT:-${PORT:-20128}}"
       - "${API_PORT:-20129}:${API_PORT:-20129}"
