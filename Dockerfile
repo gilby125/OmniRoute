@@ -1,4 +1,4 @@
-FROM node:24.14.1-trixie-slim AS builder
+FROM node:22-slim AS builder
 WORKDIR /app
 
 RUN apt-get update \
@@ -15,7 +15,7 @@ RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm inst
 COPY . ./
 RUN mkdir -p /app/data && NEXT_TELEMETRY_DISABLED=1 NEXT_PRIVATE_BUILD_WORKER=0 NODE_ENV=production npm run build
 
-FROM node:24.14.1-trixie-slim AS runner-base
+FROM node:22-slim AS runner-base
 WORKDIR /app
 
 LABEL org.opencontainers.image.title="omniroute" \
