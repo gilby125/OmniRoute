@@ -13,6 +13,7 @@ COPY scripts/postinstallSupport.mjs ./scripts/postinstallSupport.mjs
 RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
 
 COPY . ./
+RUN rm -rf app
 RUN mkdir -p /app/data
 RUN NEXT_TELEMETRY_DISABLED=1 NEXT_PRIVATE_BUILD_WORKER=0 NODE_OPTIONS="--max-old-space-size=4096" NODE_ENV=production CI=true npx next build
 RUN cp -r public .next/standalone/public
@@ -30,7 +31,7 @@ LABEL org.opencontainers.image.title="omniroute" \
 ENV NODE_ENV=production
 ENV PORT=20128
 ENV HOSTNAME=0.0.0.0
-ENV NODE_OPTIONS="--max-old-space-size=256"
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 # Data directory inside Docker — must match the volume mount in docker-compose.yml
 ENV DATA_DIR=/app/data
