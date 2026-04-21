@@ -13,12 +13,12 @@ COPY scripts/postinstallSupport.mjs ./scripts/postinstallSupport.mjs
 RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
 
 COPY . ./
-RUN mkdir -p /app/data \
-  && mv app app_legacy_backup \
-  && NEXT_TELEMETRY_DISABLED=1 NEXT_PRIVATE_BUILD_WORKER=0 NODE_ENV=production npx next build \
-  && mv app_legacy_backup app \
-  && cp -r public .next/standalone/public \
-  && cp -r .next/static .next/standalone/.next/static
+RUN mkdir -p /app/data
+RUN mv app app_legacy_backup
+RUN NEXT_TELEMETRY_DISABLED=1 NEXT_PRIVATE_BUILD_WORKER=0 NODE_ENV=production CI=true npx next build
+RUN mv app_legacy_backup app
+RUN cp -r public .next/standalone/public
+RUN cp -r .next/static .next/standalone/.next/static
 
 FROM node:22-slim AS runner-base
 WORKDIR /app
