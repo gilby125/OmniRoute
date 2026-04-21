@@ -14,9 +14,7 @@ RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm inst
 
 COPY . ./
 RUN mkdir -p /app/data
-RUN if [ -d "app" ]; then mv app app_legacy_backup; fi
-RUN NEXT_TELEMETRY_DISABLED=1 NEXT_PRIVATE_BUILD_WORKER=0 NODE_ENV=production CI=true npx next build
-RUN if [ -d "app_legacy_backup" ]; then mv app_legacy_backup app; fi
+RUN NEXT_TELEMETRY_DISABLED=1 NEXT_PRIVATE_BUILD_WORKER=0 NODE_OPTIONS="--max-old-space-size=4096" NODE_ENV=production CI=true npx next build
 RUN cp -r public .next/standalone/public
 RUN cp -r .next/static .next/standalone/.next/static
 
