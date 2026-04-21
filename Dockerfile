@@ -13,7 +13,7 @@ COPY scripts/postinstallSupport.mjs ./scripts/postinstallSupport.mjs
 RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
 
 COPY . ./
-RUN mkdir -p /app/data && NEXT_TELEMETRY_DISABLED=1 NODE_ENV=production npm run build
+RUN mkdir -p /app/data && NEXT_TELEMETRY_DISABLED=1 NEXT_PRIVATE_BUILD_WORKER=0 NODE_ENV=production npm run build
 
 FROM node:24.14.1-trixie-slim AS runner-base
 WORKDIR /app
