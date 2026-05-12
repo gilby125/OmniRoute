@@ -36,6 +36,14 @@ coverage**
 /app
 cloud/*
 
+# Local deployment overrides
+docker-compose.override.yml
+.env.local
+
+# scripts/scratch already ignored, but adding specific utilities if needed
+# scripts/env-diff.sh
+# scripts/config-snapshot.sh
+
 # misc
 .DS_Store
 *.pem

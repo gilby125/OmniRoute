@@ -1,0 +1,5 @@
+# Keep local versions of deployment configs during upstream merges
+docker-compose.yml merge=ours
+docker-compose.prod.yml merge=ours
+fly.toml merge=ours
+package-lock.json merge=ours
